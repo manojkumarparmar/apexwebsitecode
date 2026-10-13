@@ -7,7 +7,9 @@ Static site for https://www.apexsteeldesigns.com. Plain HTML, one stylesheet, on
 - `thanks.html` — where both contact forms land after sending (not indexed)
 - `style.css` — all styles; brand colors are the variables at the top (`--blue` is the logo blue)
 - `site.js` — menu, contact tabs, upload checks, sample-drawing filters
-- `img/` — logo marks (`apex-mark-white.svg`, `apex-mark-color.svg`) and page images
+- `img/` — official logo files from Apex-Steel-Designs-Logo.zip and page images:
+  `apex-horizontal-color.svg` (header, on white), `apex-horizontal-white.svg` (menu and footer, on dark),
+  `apex-mark-color.svg` (favicon), `apex-mark-white.svg` (background watermark), `apple-touch-icon.png` (phone home-screen icon)
 - `sitemap.xml`, `robots.txt`
 
 ## Placeholders
