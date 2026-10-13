@@ -1,61 +1,86 @@
+/* Apex Steel Designs — small page behaviors. Everything works without JavaScript; this only enhances. */
+(function () {
+  var hdr = document.querySelector('.site-header');
 
-(function(){
-  var hdr=document.querySelector('.site-header'),ov=document.getElementById('overlay'),openBtn=document.querySelector('.site-header .menu-btn');
-  function onScroll(){hdr.classList.toggle('solid',window.scrollY>40);}
-  window.addEventListener('scroll',onScroll,{passive:true});onScroll();
-  function setMenu(o){ov.classList.toggle('open',o);document.documentElement.classList.toggle('lock',o);openBtn.setAttribute('aria-expanded',o);
-    if(o)ov.querySelector('.close').focus();}
-  openBtn.addEventListener('click',function(){setMenu(true);});
-  ov.querySelector('.close').addEventListener('click',function(){setMenu(false);openBtn.focus();});
-  ov.addEventListener('click',function(e){if(e.target.closest('a'))setMenu(false);});
-  document.addEventListener('keydown',function(e){if(e.key==='Escape'&&ov.classList.contains('open')){setMenu(false);openBtn.focus();}});
+  // Header turns solid once you scroll past the top of the hero
+  function onScroll() { hdr.classList.toggle('solid', window.scrollY > 30); }
+  window.addEventListener('scroll', onScroll, { passive: true }); onScroll();
 
-  function note(f,cls,text){var old=f.querySelector('.sent');if(old)old.remove();
-    var m=document.createElement('div');m.className='sent'+(cls?' '+cls:'');m.setAttribute('role','status');m.textContent=text;f.appendChild(m);}
-  // FormSubmit forms post normally (needed for the customer auto-reply), then land on thanks.html
-  document.querySelectorAll('form[data-formsubmit]').forEach(function(f){
-    f.addEventListener('submit',function(){
-      var next=f.querySelector('input[name=_next]');
-      if(next&&/^https?:/.test(location.protocol))next.value=new URL('thanks.html?form='+f.getAttribute('data-formsubmit'),location.href).href;
-      var btn=f.querySelector('button[type=submit]');btn.textContent='SENDING…';
+  // Full-screen menu (tablet and phone)
+  var menu = document.getElementById('menu'), openBtn = hdr.querySelector('.menu-btn'), closeBtn = menu.querySelector('.close');
+  function setMenu(open) {
+    menu.classList.toggle('open', open);
+    document.documentElement.classList.toggle('lock', open);
+    openBtn.setAttribute('aria-expanded', open);
+    if (open) closeBtn.focus(); else openBtn.focus();
+  }
+  openBtn.addEventListener('click', function () { setMenu(true); });
+  closeBtn.addEventListener('click', function () { setMenu(false); });
+  menu.addEventListener('click', function (e) { if (e.target.closest('a')) { menu.classList.remove('open'); document.documentElement.classList.remove('lock'); openBtn.setAttribute('aria-expanded', false); } });
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && menu.classList.contains('open')) setMenu(false); });
+
+  // Contact page tabs: #consultation (default) and #general
+  var tabs = [].slice.call(document.querySelectorAll('[role=tab]'));
+  function pick(tab, focus) {
+    tabs.forEach(function (t) {
+      var on = t === tab;
+      t.setAttribute('aria-selected', on); t.tabIndex = on ? 0 : -1;
+      document.getElementById(t.getAttribute('aria-controls')).hidden = !on;
+    });
+    if (focus) tab.focus();
+  }
+  tabs.forEach(function (t, i) {
+    t.addEventListener('click', function () { pick(t); history.replaceState(null, '', '#' + t.getAttribute('aria-controls')); });
+    t.addEventListener('keydown', function (e) {
+      if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') { var n = tabs[(i + (e.key === 'ArrowRight' ? 1 : tabs.length - 1)) % tabs.length]; pick(n, true); }
     });
   });
-  document.querySelectorAll('form:not([data-formsubmit])').forEach(function(f){f.addEventListener('submit',function(e){e.preventDefault();
-    var btn=f.querySelector('button[type=submit]');
-    function done(){note(f,'','✓ '+f.getAttribute('data-ok'));f.reset();}
-    if(!f.hasAttribute('data-netlify')){done();return;}
-    var fd=new FormData(f);
-    btn.disabled=true;var label=btn.textContent;btn.textContent='SENDING…';
-    fetch('/',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:new URLSearchParams(fd).toString()})
-      .then(function(r){if(!r.ok)throw new Error(r.status);done();})
-      .catch(function(){note(f,'err','Sorry, that did not send. Please try again or email contact@apexsteel.com.');})
-      .then(function(){btn.disabled=false;btn.textContent=label;});
-  });});
+  function fromHash() {
+    var h = location.hash.slice(1), t = tabs.filter(function (x) { return x.getAttribute('aria-controls') === h; })[0];
+    if (t) { pick(t); document.getElementById('forms').scrollIntoView(); }
+  }
+  if (tabs.length) { window.addEventListener('hashchange', fromHash); fromHash(); }
 
+  // Forms: check attachment size and type before sending, then show a sending state
+  document.querySelectorAll('form[data-netlify]').forEach(function (f) {
+    var err = f.querySelector('.form-error'), btn = f.querySelector('button[type=submit]');
+    function fail(msg) { err.textContent = msg; err.hidden = false; err.scrollIntoView({ block: 'center' }); }
+    f.addEventListener('submit', function (e) {
+      err.hidden = true;
+      var input = f.querySelector('input[type=file]');
+      if (input && input.files.length) {
+        var max = parseFloat(input.getAttribute('data-max-mb')) * 1024 * 1024, total = 0, bad = [];
+        [].forEach.call(input.files, function (file) {
+          total += file.size;
+          if (!/\.(pdf|dwg|dxf|zip)$/i.test(file.name)) bad.push(file.name);
+        });
+        if (bad.length) { e.preventDefault(); return fail('These files are not PDF, DWG, DXF, or ZIP: ' + bad.join(', ') + '.'); }
+        if (total > max) { e.preventDefault(); return fail('Your files total ' + (total / 1048576).toFixed(1) + ' MB. The limit is ' + input.getAttribute('data-max-mb') + ' MB — please email larger files to contact@apexsteeldesigns.com or include a download link in your message.'); }
+      }
+      btn.disabled = true; btn.textContent = 'Sending…';
+    });
+  });
 
-  document.querySelectorAll('.chips[data-for]').forEach(function(bar){var t=document.getElementById(bar.getAttribute('data-for'));
-    bar.addEventListener('click',function(e){var b=e.target.closest('.chip');if(!b)return;
-      bar.querySelectorAll('.chip').forEach(function(c){c.setAttribute('aria-pressed',c===b);});
-      var v=b.getAttribute('data-filter');t.querySelectorAll('[data-cat]').forEach(function(r){r.hidden=!(v==='all'||r.getAttribute('data-cat')===v);});});});
+  // Sample thumbnails: if a preview image can't load, show a plain sheet tile instead of broken-image text
+  document.querySelectorAll('.sheet img').forEach(function (img) {
+    function swap() { var t = img.parentNode; t.classList.add('noimg'); img.remove(); }
+    if (img.complete && img.naturalWidth === 0) swap(); else img.addEventListener('error', swap);
+  });
 
-  var tabs=[].slice.call(document.querySelectorAll('[role=tab]'));
-  function pick(id){tabs.forEach(function(t){var on=t.id===id;t.setAttribute('aria-selected',on);document.getElementById(t.getAttribute('aria-controls')).hidden=!on;});}
-  tabs.forEach(function(t){t.addEventListener('click',function(){pick(t.id);});});
-  function hdHash(){if(location.hash==='#help-desk')pick('tab-hd');else if(location.hash==='#contact')pick('tab-inq');}
-  window.addEventListener('hashchange',hdHash);hdHash();
+  // Sample drawing filters
+  var bar = document.querySelector('.filters'), gallery = document.getElementById('gallery');
+  if (bar && gallery) {
+    bar.addEventListener('click', function (e) {
+      var b = e.target.closest('.filter'); if (!b) return;
+      bar.querySelectorAll('.filter').forEach(function (x) { x.setAttribute('aria-pressed', x === b); });
+      var v = b.getAttribute('data-filter');
+      gallery.querySelectorAll('[data-cat]').forEach(function (s) { s.hidden = !(v === 'all' || s.getAttribute('data-cat') === v); });
+    });
+  }
 
-  var pages=[].slice.call(document.querySelectorAll('.page'));
-  if(pages.length){
-    function show(id){pages.forEach(function(p){p.classList.toggle('active',p.id==='pg-'+id);});
-      document.querySelectorAll('.nx').forEach(function(n){n.hidden=n.getAttribute('data-pg')!==id;});
-      document.querySelectorAll('[data-nav]').forEach(function(a){if(a.getAttribute('data-nav')===id)a.setAttribute('aria-current','page');else a.removeAttribute('aria-current');});}
-    function current(){var a=document.querySelector('.page.active');return a?a.id.slice(3):null;}
-    function route(){var h=(location.hash||'#home').slice(1);
-      if(document.getElementById('pg-'+h)){if(current()!==h)show(h);window.scrollTo({top:0,behavior:'instant'});return;}
-      var el=document.getElementById(h);if(!el){show('home');return;}
-      var pg=el.closest('.page');if(pg&&current()!==pg.id.slice(3))show(pg.id.slice(3));
-      if(!current())show('home');
-      requestAnimationFrame(function(){el.scrollIntoView({behavior:'smooth'});});}
-    window.addEventListener('hashchange',route);route();
+  // Thank-you page: tailor the message to the form that was sent
+  var ty = document.getElementById('ty-text');
+  if (ty && /form=consultation/.test(location.search)) {
+    ty.textContent = 'We’ve received your consultation request. A US-based project manager will reply within one business day, and written guidance typically follows within 24 to 48 hours.';
   }
 })();
