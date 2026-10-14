@@ -41,23 +41,36 @@
   }
   if (tabs.length) { window.addEventListener('hashchange', fromHash); fromHash(); }
 
-  // Forms: check attachment size and type before sending, then show a sending state
-  document.querySelectorAll('form[data-netlify]').forEach(function (f) {
-    var err = f.querySelector('.form-error'), btn = f.querySelector('button[type=submit]');
-    function fail(msg) { err.textContent = msg; err.hidden = false; err.scrollIntoView({ block: 'center' }); }
+  // Forms: check attachments, send in the background, and show any problem right on the form.
+  // Without JavaScript the forms still post normally to /api/submit and land on the thank-you page.
+  document.querySelectorAll('form[data-form]').forEach(function (f) {
+    var err = f.querySelector('.form-error'), btn = f.querySelector('button[type=submit]'), label = btn.textContent;
+    function fail(msg) { err.textContent = msg; err.hidden = false; err.scrollIntoView({ block: 'center' }); btn.disabled = false; btn.textContent = label; }
     f.addEventListener('submit', function (e) {
       err.hidden = true;
       var input = f.querySelector('input[type=file]');
       if (input && input.files.length) {
-        var max = parseFloat(input.getAttribute('data-max-mb')) * 1024 * 1024, total = 0, bad = [];
+        var max = parseFloat(input.getAttribute('data-max-mb')) * 1048576, maxFile = parseFloat(input.getAttribute('data-max-file-mb')) * 1048576,
+          total = 0, bad = [], big = [];
         [].forEach.call(input.files, function (file) {
           total += file.size;
           if (!/\.(pdf|dwg|dxf|zip)$/i.test(file.name)) bad.push(file.name);
+          if (file.size > maxFile) big.push(file.name);
         });
         if (bad.length) { e.preventDefault(); return fail('These files are not PDF, DWG, DXF, or ZIP: ' + bad.join(', ') + '.'); }
+        if (big.length) { e.preventDefault(); return fail('These files are over ' + input.getAttribute('data-max-file-mb') + ' MB: ' + big.join(', ') + '. Please email them to contact@apexsteeldesigns.com or include a download link in your message.'); }
         if (total > max) { e.preventDefault(); return fail('Your files total ' + (total / 1048576).toFixed(1) + ' MB. The limit is ' + input.getAttribute('data-max-mb') + ' MB — please email larger files to contact@apexsteeldesigns.com or include a download link in your message.'); }
       }
+      if (!window.fetch || !window.FormData) { btn.disabled = true; btn.textContent = 'Sending…'; return; }
+      e.preventDefault();
       btn.disabled = true; btn.textContent = 'Sending…';
+      fetch(f.action, { method: 'POST', body: new FormData(f), headers: { Accept: 'application/json' } })
+        .then(function (r) { return r.json().catch(function () { return { ok: false }; }); })
+        .then(function (res) {
+          if (res.ok) { location.href = res.redirect || '/thanks.html'; return; }
+          fail(res.error || 'Your form could not be sent. Please try again, or email contact@apexsteeldesigns.com.');
+        })
+        .catch(function () { fail('Your form could not be sent. Please check your connection and try again, or email contact@apexsteeldesigns.com.'); });
     });
   });
 

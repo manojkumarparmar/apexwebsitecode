@@ -1,0 +1,26 @@
+# Cloudflare Pages configuration for the Apex Steel Designs website.
+# This file is the source of truth for the Pages project's bindings and settings.
+name = "apexwebsitecode"
+pages_build_output_dir = "."
+compatibility_date = "2026-10-01"
+
+# Form submissions (see functions/api/submit.js)
+[[d1_databases]]
+binding = "DB"
+database_name = "apex-forms"
+database_id = "a6cbe2bc-4de9-415f-9dbb-e9faf7f9f01d"
+
+# Files attached to the consultation form
+[[kv_namespaces]]
+binding = "UPLOADS"
+id = "4fc9d0976d8246df9b2e242298569f7d"
+
+[vars]
+NOTIFY_TO = "contact@apexsteeldesigns.com"
+NOTIFY_FROM = "website@apexsteeldesigns.com"
+
+# Email notifications: turn on once apexsteeldesigns.com uses Cloudflare DNS and is
+# onboarded to Email Service (Dashboard > Compute > Email Service > Email Sending).
+# Then remove the "#" from the next two lines.
+# [[send_email]]
+# name = "EMAIL"

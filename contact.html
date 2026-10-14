@@ -65,7 +65,7 @@
 
     <div class="panel" id="consultation" role="tabpanel" aria-labelledby="tab-consult">
       <p class="intro"><strong>Your first consultation is free.</strong> Send us a drawing set, a model, or a single question. Our team reviews it and returns written guidance, typically within 24 to 48 hours.</p>
-      <form name="consultation-request" method="POST" action="/thanks.html?form=consultation" enctype="multipart/form-data" data-netlify="true" netlify-honeypot="bot-field">
+      <form name="consultation-request" method="POST" action="/api/submit" enctype="multipart/form-data" data-form>
         <input type="hidden" name="form-name" value="consultation-request">
         <p hidden><label>Leave this empty <input name="bot-field"></label></p>
         <div class="f2"><label for="c-name"><span class="lt">Name <span class="req" aria-hidden="true">*</span></span><input id="c-name" name="name" required autocomplete="name"></label>
@@ -85,8 +85,8 @@
           <label for="c-tons"><span class="lt">Project size</span><input id="c-tons" name="project_size" placeholder="Tons, or TBD"></label></div>
         <div class="f2"><label for="c-date"><span class="lt">Needed-by date</span><input id="c-date" name="needed_by" type="date"></label><span></span></div>
         <label for="c-msg"><span class="lt">Message</span><textarea id="c-msg" name="message" placeholder="What would you like us to look at?"></textarea></label>
-        <div class="drop"><label for="c-files">Attach drawings <small>PDF, DWG, DXF, or ZIP. Multiple files allowed, up to 8 MB in total.</small>
-          <input id="c-files" name="files" type="file" multiple accept=".pdf,.dwg,.dxf,.zip" data-max-mb="8"></label>
+        <div class="drop"><label for="c-files">Attach drawings <small>PDF, DWG, DXF, or ZIP. Multiple files allowed, up to 25 MB each and 50 MB in total.</small>
+          <input id="c-files" name="files" type="file" multiple accept=".pdf,.dwg,.dxf,.zip" data-max-mb="50" data-max-file-mb="25"></label>
           <p class="hint" style="margin:8px 0 0">For larger files, email <a href="mailto:contact@apexsteeldesigns.com" style="color:var(--blue);text-decoration:underline">contact@apexsteeldesigns.com</a> or include a download link in your message.</p></div>
         <p class="form-error" role="alert" hidden></p>
         <button class="btn" type="submit">Request free consultation</button>
@@ -97,7 +97,7 @@
 
     <div class="panel" id="general" role="tabpanel" aria-labelledby="tab-general" hidden>
       <p class="intro">Have a question or want to introduce your company? Send us a note and we’ll get back to you within one business day.</p>
-      <form name="general-contact" method="POST" action="/thanks.html?form=general" data-netlify="true" netlify-honeypot="bot-field">
+      <form name="general-contact" method="POST" action="/api/submit" enctype="multipart/form-data" data-form>
         <input type="hidden" name="form-name" value="general-contact">
         <p hidden><label>Leave this empty <input name="bot-field"></label></p>
         <div class="f2"><label for="g-name"><span class="lt">Name <span class="req" aria-hidden="true">*</span></span><input id="g-name" name="name" required autocomplete="name"></label>

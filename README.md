@@ -17,14 +17,26 @@ Anything still waiting on owner input is marked in the pages as `<span class="tb
 (it shows as a small yellow dashed tag). Search for `class="tbd"` to find them all. Remove each tag
 when the real content goes in; none should remain at launch.
 
-## Forms (Netlify Forms)
-Both forms on `contact.html` post to Netlify Forms, so the site must be hosted on Netlify.
-- `consultation-request` — free consultation / Help Desk, with file upload (PDF, DWG, DXF, ZIP; 8 MB per submission is Netlify's limit)
+## Hosting (Cloudflare Pages)
+The site is hosted on Cloudflare Pages, connected to this GitHub repo. Every change merged to `main`
+goes live automatically; other branches get a preview address (`<branch>.apexwebsitecode.pages.dev`).
+`wrangler.toml` holds the Pages settings and bindings — change bindings there, not in the dashboard.
+
+## Forms (Cloudflare Pages Function)
+Both forms on `contact.html` post to `/api/submit`, handled by `functions/api/submit.js`.
+- `consultation-request` — free consultation / Help Desk, with file upload (PDF, DWG, DXF, ZIP; up to 25 MB per file, 50 MB in total, 10 files)
 - `general-contact` — general questions
 
-After the first deploy: in Netlify → Forms, turn on email notifications to contact@apexsteeldesigns.com
-for both forms. Netlify does not send an automatic reply to the person who submitted; that needs a
-separate setup if wanted.
+Each submission is saved in the Cloudflare D1 database `apex-forms` (table `submissions`), and attached
+files are saved in the KV namespace `apex-form-uploads` under `<submission id>/<file name>`.
+View them in the Cloudflare dashboard: Storage & Databases → D1 → apex-forms → Console
+(`SELECT * FROM submissions ORDER BY created_at DESC;`), and Storage & Databases → KV → apex-form-uploads.
+
+Email notifications to contact@apexsteeldesigns.com are built in but switched off until the domain uses
+Cloudflare DNS and is onboarded to Cloudflare Email Service. Then uncomment the `[[send_email]]` lines in
+`wrangler.toml`. No automatic reply is sent to the person who submitted.
+
+Spam protection is a hidden "bot-field" honeypot. Cloudflare Turnstile can be added later if spam gets through.
 
 ## Sample drawings
 The Projects page gallery currently loads thumbnails and PDFs from affsteel.com
