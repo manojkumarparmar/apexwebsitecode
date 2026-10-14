@@ -18,6 +18,10 @@ id = "4fc9d0976d8246df9b2e242298569f7d"
 [vars]
 NOTIFY_TO = "contact@apexsteeldesigns.com"
 NOTIFY_FROM = "website@apexsteeldesigns.com"
+# Google Drive folder the site creates for consultation uploads (see README "Google Drive uploads").
+# The sign-in secrets GDRIVE_CLIENT_ID, GDRIVE_CLIENT_SECRET and GDRIVE_REFRESH_TOKEN are NOT kept here;
+# add them as secrets in the Cloudflare dashboard.
+GDRIVE_FOLDER_NAME = "Apex Consultation Uploads"
 
 # Email notifications: turn on once apexsteeldesigns.com uses Cloudflare DNS and is
 # onboarded to Email Service (Dashboard > Compute > Email Service > Email Sending).

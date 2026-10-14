@@ -5,9 +5,15 @@
 //   1. Checks the required fields and the attachments.
 //   2. Saves the entry in the D1 database (binding DB, table "submissions").
 //   3. Saves each attached file in KV (binding UPLOADS), key "<submission id>/<file name>".
-//   4. If an EMAIL binding is set up (Cloudflare Email Service), emails the details
-//      to NOTIFY_TO. Until then entries are only stored; nothing is lost.
-//   5. Sends the visitor to /thanks.html (or returns JSON when the page asked for it).
+//   4. Sends the visitor to /thanks.html (or returns JSON when the page asked for it).
+//   5. In the background, after the visitor is answered:
+//      a. If Google Drive is set up (GDRIVE_* secrets), copies the files into a new folder
+//         in Drive, records the links in D1, and removes the KV copies. If the copy fails,
+//         the files stay in KV and the failure is noted in D1 and in the email.
+//      b. If an EMAIL binding is set up (Cloudflare Email Service), emails the details
+//         to NOTIFY_TO. Until then entries are only stored; nothing is lost.
+
+import { driveConfigured, copySubmissionToDrive } from '../_lib/google-drive.js';
 
 const FORMS = {
   'consultation-request': {
@@ -37,7 +43,7 @@ const MAX_TOTAL_BYTES = 50 * 1024 * 1024;
 const MAX_FILES = 10;
 const MAX_FIELD = 5000;
 
-export async function onRequestPost({ request, env }) {
+export async function onRequestPost({ request, env, waitUntil }) {
   const wantsJson = (request.headers.get('accept') || '').includes('application/json');
 
   let data;
@@ -118,6 +124,42 @@ export async function onRequestPost({ request, env }) {
     return reply(wantsJson, 500, 'Something went wrong on our side. Please try again, or email contact@apexsteeldesigns.com.');
   }
 
+  // Drive copy and email run after the visitor gets their answer.
+  const followUp = afterSubmit(env, { id, createdAt, form, fields, saved });
+  if (typeof waitUntil === 'function') waitUntil(followUp);
+  else await followUp;
+
+  return wantsJson
+    ? Response.json({ ok: true, redirect: form.thanks })
+    : Response.redirect(new URL(form.thanks, request.url), 303);
+}
+
+async function afterSubmit(env, { id, createdAt, form, fields, saved }) {
+  let drive = null;
+  let driveError = null;
+
+  if (saved.length && driveConfigured(env)) {
+    try {
+      drive = await copySubmissionToDrive(env, { id, fields, saved });
+      const files = saved.map((f) => {
+        const d = drive.files.find((x) => x.key === f.key) || {};
+        return { ...f, driveId: d.driveId, driveLink: d.link };
+      });
+      await env.DB.prepare('UPDATE submissions SET files_json = ?1 WHERE id = ?2')
+        .bind(JSON.stringify({ driveFolder: drive.folderLink, files }), id).run();
+      for (const f of saved) await env.UPLOADS.delete(f.key); // Drive now holds the files
+    } catch (e) {
+      driveError = String(e && e.message ? e.message : e);
+      console.error('drive copy failed', driveError);
+      try {
+        await env.DB.prepare('UPDATE submissions SET files_json = ?1 WHERE id = ?2')
+          .bind(JSON.stringify({ driveError, files: saved }), id).run();
+      } catch (e2) {
+        console.error('db update failed', e2);
+      }
+    }
+  }
+
   // Email notification (only once Email Service is set up for the domain)
   if (env.EMAIL && env.NOTIFY_TO && env.NOTIFY_FROM) {
     try {
@@ -126,17 +168,13 @@ export async function onRequestPost({ request, env }) {
         from: { email: env.NOTIFY_FROM, name: 'Apex Steel Designs website' },
         replyTo: fields.email,
         subject: `${form.label}: ${fields.name} (${fields.company})`,
-        text: emailText(form.label, id, createdAt, fields, saved),
+        text: emailText(form.label, id, createdAt, fields, saved, drive, driveError),
       });
       await env.DB.prepare('UPDATE submissions SET emailed = 1 WHERE id = ?1').bind(id).run();
     } catch (e) {
       console.error('notification email failed', e); // entry is already saved
     }
   }
-
-  return wantsJson
-    ? Response.json({ ok: true, redirect: form.thanks })
-    : Response.redirect(new URL(form.thanks, request.url), 303);
 }
 
 // A plain visit to this address: send people to the contact page.
@@ -154,11 +192,18 @@ function reply(wantsJson, status, message) {
   return new Response(html, { status, headers: { 'content-type': 'text/html; charset=utf-8' } });
 }
 
-function emailText(label, id, createdAt, fields, saved) {
+function emailText(label, id, createdAt, fields, saved, drive, driveError) {
   const lines = [`${label} — ${createdAt}`, `Reference: ${id}`, ''];
   for (const k of Object.keys(LABELS)) if (fields[k]) lines.push(`${LABELS[k]}: ${fields[k]}`);
   for (const k of Object.keys(fields)) if (!LABELS[k]) lines.push(`${k}: ${fields[k]}`);
-  if (saved.length) {
+  if (saved.length && drive) {
+    lines.push('', `Attachments (Google Drive folder): ${drive.folderLink}`);
+    for (const f of drive.files) {
+      const size = (saved.find((s) => s.key === f.key) || {}).size || 0;
+      lines.push(`- ${f.name} (${(size / 1048576).toFixed(1)} MB) — ${f.link}`);
+    }
+  } else if (saved.length) {
+    if (driveError) lines.push('', `Google Drive copy FAILED: ${driveError}`);
     lines.push('', 'Attachments (saved in Cloudflare KV namespace "apex-form-uploads"):');
     for (const f of saved) lines.push(`- ${f.name} (${(f.size / 1048576).toFixed(1)} MB) — key: ${f.key}`);
   }
