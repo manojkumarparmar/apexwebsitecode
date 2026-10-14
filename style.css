@@ -407,3 +407,11 @@ footer .email{color:#fff}
 .quote blockquote{padding-top:14px}
 /* on narrow screens the form comes first; contact details follow */
 @media(max-width:940px){.contact-grid .formbox{order:-1}}
+
+/* Long-form text pages (privacy policy) */
+.legal{max-width:760px}
+.legal h2{font-size:clamp(1.25rem,2.2vw,1.6rem);margin:44px 0 6px}
+.legal h2:first-child{margin-top:0}
+.legal p{color:var(--muted);font-size:15.5px;margin:14px 0 0}
+.legal .bullets{margin-top:10px}
+.fbottom a{text-decoration:underline;text-underline-offset:2px}
