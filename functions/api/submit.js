@@ -34,7 +34,8 @@ const FORMS = {
 const LABELS = {
   name: 'Name', company: 'Company', role: 'Role', email: 'Email', phone: 'Phone',
   project_location: 'Project location', service: 'Service needed', software_cnc: 'Software / CNC line',
-  project_size: 'Project size', needed_by: 'Needed by', message: 'Message',
+  project_size: 'Project size', needed_by: 'Needed by',
+  change_wanted: 'What they would change about their current detailing process', message: 'Message',
 };
 
 const ALLOWED_EXT = /\.(pdf|dwg|dxf|zip)$/i;

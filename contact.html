@@ -51,7 +51,7 @@
       <div><dt>Phone</dt><dd><a href="tel:+19726657135">972-665-7135</a></dd></div>
       <div><dt>Office</dt><dd>1411 Slocum St<br>Dallas, TX 75207</dd></div>
       <div><dt>Production</dt><dd>India · Philippines · Singapore</dd></div>
-      <div><dt>Hours</dt><dd>US business hours across CST, EST, and PST; overnight production keeps your job moving.</dd></div>
+      <div><dt>Hours</dt><dd>US business hours across CST, EST, and PST; overnight production keeps your job moving. A US project manager answers during those hours.</dd></div>
     </dl>
     <h3 style="margin-top:36px">The Help Desk can review</h3>
     <ul class="help-list"><li>Connection design</li><li>Value engineering</li><li>BIM and coordination</li><li>Shop drawing checks and constructability</li><li>Detailing scope</li></ul>
@@ -64,7 +64,7 @@
     </div>
 
     <div class="panel" id="consultation" role="tabpanel" aria-labelledby="tab-consult">
-      <p class="intro"><strong>Your first consultation is free.</strong> Send us a drawing set, a model, or a single question. Our team reviews it and returns written guidance, typically within 24 to 48 hours.</p>
+      <p class="intro"><strong>Your first consultation is free.</strong> Send us a drawing set, a model, or a single question. Our team reviews it and returns written guidance, typically within 24 to 48 hours. You hear back from us the same business day.</p>
       <form name="consultation-request" method="POST" action="/api/submit" enctype="multipart/form-data" data-form>
         <input type="hidden" name="form-name" value="consultation-request">
         <p hidden><label>Leave this empty <input name="bot-field"></label></p>
@@ -84,19 +84,20 @@
         <div class="f2"><label for="c-sw"><span class="lt">Software / CNC line</span><input id="c-sw" name="software_cnc" placeholder="e.g. Tekla, FabSuite, Peddinghaus"></label>
           <label for="c-tons"><span class="lt">Project size</span><input id="c-tons" name="project_size" placeholder="Tons, or TBD"></label></div>
         <div class="f2"><label for="c-date"><span class="lt">Needed-by date</span><input id="c-date" name="needed_by" type="date"></label><span></span></div>
+        <label for="c-change"><span class="lt">What would you most like to change about your current detailing process? <small>(optional)</small></span><textarea id="c-change" name="change_wanted" rows="2" style="min-height:72px"></textarea></label>
         <label for="c-msg"><span class="lt">Message</span><textarea id="c-msg" name="message" placeholder="What would you like us to look at?"></textarea></label>
         <div class="drop"><label for="c-files">Attach drawings <small>PDF, DWG, DXF, or ZIP. Multiple files allowed, up to 25 MB each and 50 MB in total.</small>
           <input id="c-files" name="files" type="file" multiple accept=".pdf,.dwg,.dxf,.zip" data-max-mb="50" data-max-file-mb="25"></label>
           <p class="hint" style="margin:8px 0 0">For larger files, email <a href="mailto:contact@apexsteeldesigns.com" style="color:var(--blue);text-decoration:underline">contact@apexsteeldesigns.com</a> or include a download link in your message.</p></div>
         <p class="form-error" role="alert" hidden></p>
         <button class="btn" type="submit">Request free consultation</button>
-        <p class="form-note">Fields marked * are required. A project manager replies within one business day.</p>
+        <p class="form-note">Fields marked * are required. A project manager replies the same business day.</p>
         <p class="reassure"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="4" y="11" width="16" height="10" rx="1"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg><span>Your drawings stay confidential. We use them only to prepare your consultation or quote.</span></p>
       </form>
     </div>
 
     <div class="panel" id="general" role="tabpanel" aria-labelledby="tab-general" hidden>
-      <p class="intro">Have a question or want to introduce your company? Send us a note and we’ll get back to you within one business day.</p>
+      <p class="intro">Have a question or want to introduce your company? Send us a note and we’ll get back to you the same business day.</p>
       <form name="general-contact" method="POST" action="/api/submit" enctype="multipart/form-data" data-form>
         <input type="hidden" name="form-name" value="general-contact">
         <p hidden><label>Leave this empty <input name="bot-field"></label></p>
