@@ -10,8 +10,8 @@
 //      a. If Google Drive is set up (GDRIVE_* secrets), copies the files into a new folder
 //         in Drive, records the links in D1, and removes the KV copies. If the copy fails,
 //         the files stay in KV and the failure is noted in D1 and in the email.
-//      b. If an EMAIL binding is set up (Cloudflare Email Service), emails the details
-//         to NOTIFY_TO. Until then entries are only stored; nothing is lost.
+//      b. If the RESEND_API_KEY secret is set, emails the details to NOTIFY_TO through
+//         Resend. Until then entries are only stored; nothing is lost.
 
 import { driveConfigured, copySubmissionToDrive } from '../_lib/google-drive.js';
 
@@ -161,16 +161,24 @@ async function afterSubmit(env, { id, createdAt, form, fields, saved }) {
     }
   }
 
-  // Email notification (only once Email Service is set up for the domain)
-  if (env.EMAIL && env.NOTIFY_TO && env.NOTIFY_FROM) {
+  // Email notification through Resend (needs the RESEND_API_KEY secret)
+  if (env.RESEND_API_KEY && env.NOTIFY_TO && env.NOTIFY_FROM) {
     try {
-      await env.EMAIL.send({
-        to: env.NOTIFY_TO,
-        from: { email: env.NOTIFY_FROM, name: 'Apex Steel Designs website' },
-        replyTo: fields.email,
-        subject: `${form.label}: ${fields.name} (${fields.company})`,
-        text: emailText(form.label, id, createdAt, fields, saved, drive, driveError),
+      const res = await fetch('https://api.resend.com/emails', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${env.RESEND_API_KEY}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          from: `Apex Steel Designs website <${env.NOTIFY_FROM}>`,
+          to: [env.NOTIFY_TO],
+          reply_to: fields.email,
+          subject: `${form.label}: ${fields.name} (${fields.company})`,
+          text: emailText(form.label, id, createdAt, fields, saved, drive, driveError),
+        }),
       });
+      if (!res.ok) throw new Error(`Resend ${res.status}: ${await res.text()}`);
       await env.DB.prepare('UPDATE submissions SET emailed = 1 WHERE id = ?1').bind(id).run();
     } catch (e) {
       console.error('notification email failed', e); // entry is already saved
