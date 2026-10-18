@@ -138,7 +138,7 @@ function auth(token) {
 }
 
 function summaryText(id, fields, saved) {
-  const lines = [`Apex Steel Designs — free consultation request`, `Reference: ${id}`, ''];
+  const lines = [`Apex Steel Designs — free estimodeling consultation request`, `Reference: ${id}`, ''];
   for (const [k, v] of Object.entries(fields)) lines.push(`${k}: ${v}`);
   lines.push('', 'Files:');
   for (const f of saved) lines.push(`- ${f.name} (${(f.size / 1048576).toFixed(1)} MB)`);

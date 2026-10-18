@@ -17,7 +17,7 @@ import { driveConfigured, copySubmissionToDrive } from '../_lib/google-drive.js'
 
 const FORMS = {
   'consultation-request': {
-    label: 'Free consultation request',
+    label: 'Free estimodeling consultation request',
     thanks: '/thanks.html?form=consultation',
     required: ['name', 'company', 'email', 'phone'],
     files: true,
