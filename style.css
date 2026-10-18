@@ -317,6 +317,7 @@ section.soft .chips-inline li{background:var(--white)}
 .person{display:grid;grid-template-columns:96px minmax(0,1fr);gap:20px;align-items:start;background:var(--white);border:1px solid var(--line);padding:24px}
 .avatar{width:96px;height:96px;background:var(--navy);color:#fff;display:flex;align-items:center;justify-content:center;font:300 30px var(--display);letter-spacing:.04em}
 .avatar.alt{background:var(--steel)}
+.avatar.photo-avatar{object-fit:cover;object-position:center 15%;display:block;background:#fff}
 .person h3{margin:0 0 2px;font-size:19px}
 .person .role{display:block;font-size:14px;color:var(--blue);font-weight:700;margin-bottom:10px}
 .person p{margin:0 0 8px;font-size:15px}
