@@ -249,7 +249,7 @@ section.soft .chips-inline li{background:var(--white)}
 @media(max-width:820px){.quotes{grid-template-columns:1fr}}
 
 /* sectors */
-.sectors{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px}
+.sectors{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:18px}
 .sector{border:1px solid var(--line);background:var(--white);padding:24px}
 .sector h3{font-size:17px;margin-bottom:10px}
 .sector p{margin:0;font-size:15px}
