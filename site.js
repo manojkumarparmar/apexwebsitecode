@@ -94,6 +94,6 @@
   // Thank-you page: tailor the message to the form that was sent
   var ty = document.getElementById('ty-text');
   if (ty && /form=consultation/.test(location.search)) {
-    ty.textContent = 'We’ve received your consultation request. A US-based project manager will reply the same business day, and written guidance typically follows within 24 to 48 hours.';
+    ty.textContent = 'We’ve received your consultation request. A project manager from our Dallas team will reply the same business day, and written guidance typically follows within 24 to 48 hours.';
   }
 })();
